@@ -5,6 +5,8 @@
  * underlying representation.
  */
 
+#ifdef _pqueue_h
+
 #include <iostream>
 #include <string>
 #include "console.h"
@@ -18,7 +20,8 @@ using namespace std;
  * Initializes an empty priority queue.
  */
 
-PriorityQueue::PriorityQueue() {
+template <typename ValueType>
+PriorityQueue<ValueType>::PriorityQueue() {
     head = tail = NULL;
     count = 0;
 }
@@ -32,19 +35,23 @@ PriorityQueue::PriorityQueue() {
  * stores the pointer to the next cell in the list before deleting the cell.
  */
 
-PriorityQueue::~PriorityQueue() {
+template <typename ValueType>
+PriorityQueue<ValueType>::~PriorityQueue() {
     clear();
 }
 
-int PriorityQueue::size() const {
+template <typename ValueType>
+int PriorityQueue<ValueType>::size() const {
     return count;
 }
 
-bool PriorityQueue::isEmpty() const {
+template <typename ValueType>
+bool PriorityQueue<ValueType>::isEmpty() const {
     return count == 0;
 }
 
-void PriorityQueue::clear() {
+template <typename ValueType>
+void PriorityQueue<ValueType>::clear() {
     while (count > 0) {
         dequeue();
     }
@@ -84,7 +91,8 @@ void PriorityQueue::clear() {
  *                    traversing the entire list.
  */
 
-void PriorityQueue::enqueue(string value, double priority) {
+template <typename ValueType>
+void PriorityQueue<ValueType>::enqueue(ValueType value, double priority) {
     Cell *cp = new Cell;
     cp->value = value;
     cp->priority = priority;
@@ -121,22 +129,25 @@ void PriorityQueue::enqueue(string value, double priority) {
  * at the head of the list and updates head to point to the rest of the list.
  */
 
-string PriorityQueue::dequeue() {
+template <typename ValueType>
+ValueType PriorityQueue<ValueType>::dequeue() {
     if (isEmpty()) error("dequeue: Attempting to dequeue an empty priority queue");
     Cell *cp = head;
-    string result = cp->value;
+    ValueType result = cp->value;
     head = cp->link;
     delete cp;
     count--;
     return result;
 }
 
-string PriorityQueue::peek() const {
+template <typename ValueType>
+ValueType PriorityQueue<ValueType>::peek() const {
     if (isEmpty()) error("peek: Attempting to peek an empty priority queue");
     return head->value;
 }
 
-double PriorityQueue::peekPriority() const {
+template <typename ValueType>
+double PriorityQueue<ValueType>::peekPriority() const {
     if (isEmpty()) error("peekPriority: Attempting to peek an empty priority queue");
     return head->priority;
 }
@@ -147,7 +158,8 @@ double PriorityQueue::peekPriority() const {
  * Initializes the current object to be a deep copy of the argument.
  */
 
-PriorityQueue::PriorityQueue(const PriorityQueue & src) {
+template <typename ValueType>
+PriorityQueue<ValueType>::PriorityQueue(const PriorityQueue & src) {
     deepCopy(src);
 }
 
@@ -161,7 +173,8 @@ PriorityQueue::PriorityQueue(const PriorityQueue & src) {
  * linked list.
  */
 
-PriorityQueue & PriorityQueue::operator=(const PriorityQueue & src) {
+template <typename ValueType>
+PriorityQueue<ValueType> & PriorityQueue<ValueType>::operator=(const PriorityQueue & src) {
     if (this != &src) {
       clear();
       deepCopy(src);
@@ -181,7 +194,8 @@ PriorityQueue & PriorityQueue::operator=(const PriorityQueue & src) {
  * next cell.
  */
 
-void PriorityQueue::deepCopy(const PriorityQueue & src) {
+template <typename ValueType>
+void PriorityQueue<ValueType>::deepCopy(const PriorityQueue & src) {
     head = tail = NULL;
     count = 0;
     if (!src.isEmpty()) {
@@ -207,7 +221,8 @@ void PriorityQueue::deepCopy(const PriorityQueue & src) {
  * less than the priority value of the element that originally followed pair.
  */
 
-bool PriorityQueue::isNextPriority(Cell *cp, Cell *pair) {
+template <typename ValueType>
+bool PriorityQueue<ValueType>::isNextPriority(Cell *cp, Cell *pair) {
     if (cp->priority < pair->link->priority) {
         cp->link = pair->link;
         pair->link = cp;
@@ -224,7 +239,8 @@ bool PriorityQueue::isNextPriority(Cell *cp, Cell *pair) {
  * if it contains the highest priority value.
  */
 
-bool PriorityQueue::isHighestPriority(Cell *cp, Cell *pair) {
+template <typename ValueType>
+bool PriorityQueue<ValueType>::isHighestPriority(Cell *cp, Cell *pair) {
     if (cp->priority < pair->priority) {
         cp->link = pair;
         head = cp;
@@ -240,9 +256,11 @@ bool PriorityQueue::isHighestPriority(Cell *cp, Cell *pair) {
  * Places cp as the last element in the queue.
  */
 
-void PriorityQueue::appendToEnd(Cell *cp, Cell *pair) {
+template <typename ValueType>
+void PriorityQueue<ValueType>::appendToEnd(Cell *cp, Cell *pair) {
     pair->link = cp;
     cp->link = NULL;
     tail = cp;
 }
 
+#endif

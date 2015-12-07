@@ -15,15 +15,15 @@
 using namespace std;
 
 /* Function prototypes */
-void command(string cmd, PriorityQueue & pq);
-void enqueueCommand(string cmd, PriorityQueue & pq);
-void listCommand(PriorityQueue pq);
+void command(string cmd, PriorityQueue<char> & pq);
+void enqueueCommand(string cmd, PriorityQueue<char> & pq);
+void listCommand(PriorityQueue<char> pq);
 void helpCommand();
 
 /* Main program */
 
 int main() {
-    PriorityQueue pq;
+    PriorityQueue<char> pq;
     while (true) {
         string cmd = getLine("> ");
         command(cmd, pq);
@@ -41,7 +41,7 @@ int main() {
  * queue argument by value rather than by reference.
  */
 
-void listCommand(PriorityQueue pq) {
+void listCommand(PriorityQueue<char> pq) {
     int count = pq.size();
     cout << "Queue:";
     for (int i = 0; i < count; i++) {
@@ -58,15 +58,16 @@ void listCommand(PriorityQueue pq) {
  * of command is incorrect, an error message is displayed.
  */
 
-void enqueueCommand(string cmd, PriorityQueue & pq) {
+void enqueueCommand(string cmd, PriorityQueue<char> & pq) {
     if (string() + cmd[7] == " ") {
         int startPos = cmd.find(" ");
         int endPos = cmd.find(" ", startPos + 1);
         string value = cmd.substr(startPos + 1, endPos - startPos - 1);
+        char ch = cmd.at(cmd.find(value, cmd.find(value) - 1));
         startPos = endPos;
         if (cmd.find(" ", startPos + 1) == string::npos) {
             double priority = stringToDouble(cmd.substr(endPos + 1));
-            pq.enqueue(value, priority);
+            pq.enqueue(ch, priority);
         } else {
             cout << "Illegal enqueue format. Type \"help\" to view the correct format." << endl;
         }
@@ -83,7 +84,7 @@ void enqueueCommand(string cmd, PriorityQueue & pq) {
  * of command is incorrect, an error message is displayed.
  */
 
-void command(string cmd, PriorityQueue & pq) {
+void command(string cmd, PriorityQueue<char> & pq) {
     if (cmd == "dequeue" || cmd == "peek" || cmd == "peekPriority"
          || cmd == "list") {
         if (!pq.isEmpty()) {

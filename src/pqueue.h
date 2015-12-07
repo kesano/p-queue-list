@@ -22,6 +22,7 @@
  * priority 2 item.
  */
 
+template <typename ValueType>
 class PriorityQueue {
 
 public:
@@ -80,7 +81,7 @@ public:
  * If not specified, the priority is set to 1.
  */
 
-    void enqueue(std::string value, double priority = 1);
+    void enqueue(ValueType value, double priority = 1);
 
 /*
  * Method: dequeue
@@ -91,7 +92,7 @@ public:
  * dequeued in the same order in which they were enqueued.
  */
 
-    std::string dequeue();
+    ValueType dequeue();
 
 /*
  * Method: peek
@@ -101,7 +102,7 @@ public:
  * removing it.
  */
 
-    std::string peek() const;
+    ValueType peek() const;
 
 /*
  * Method: peekPriority
@@ -120,7 +121,7 @@ public:
  * Its signature follows a standard pattern for all copy constructors.
  */
 
-    PriorityQueue(const PriorityQueue & src);
+    PriorityQueue(const PriorityQueue &src);
 
 /*
  * Method: assignment operator
@@ -134,5 +135,7 @@ public:
 #include "pqueuepriv.h"
 
 };
+
+#include "pqueue.cpp"
 
 #endif

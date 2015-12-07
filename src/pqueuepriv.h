@@ -35,7 +35,7 @@ private:
 /* Type used for each heap entry */
 
     struct Cell {
-       std::string value;
+       ValueType value;
        double priority;
        Cell *link;
     };
