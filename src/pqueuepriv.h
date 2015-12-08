@@ -8,24 +8,25 @@
  * Implementation notes: PriorityQueue data structure
  * --------------------------------------------------
  * The link-based priority queue uses a linked list to store the elements
- * of the queue. To ensure that adding a new element to the end of the
- * queue is fast, the data structure maintains a pointer to the last cell
- * in the queue as well as the first. If the queue is empty, both the
- * head pointer and tail pointer are set to NULL.
+ * of the queue. This implementation mantains a pointer to a dummy cell,
+ * which is positioned at the start of the priority queue, and allocated
+ * in the heap when the queue is initialized. The purpose of the dummy cell
+ * is to remove the need to implement and maintain special-case code when
+ * adding new elements to the queue. Therefore, the value and priority fields
+ * of the dummy cell do not store any values.
  *
- * The following diagram illustrates the structure of a queue containing
- * three elements, A, B, and C, with priority values 1, 2, and 3, resprectively:
+ * The following diagram illustrates the structure of a queue containing a
+ * dummy cell, and two elements, A, and B, with priority values 1, and 2,
+ * respectively:
  *
  *
- *       +-------+        +-------+         +-------+          +-------+
- *  head |   o---+------> |   A   |   +---> |   B   |   +--==> |   C   |
- *       +-------+        +-------+   |     +-------+   |  |   +-------+
- *  tail |   o---+---+    |   1   |   |     |   2   |   |  |   |   3   |
- *       +-------+   |    +-------+   |     +-------+   |  |   +-------+
- *                   |    |   o---+---+     |   o---+---+  |   |  NULL |
- *                   |    +-------+         +-------+      |   +-------+
- *                   |                                     |
- *                   +-------------------------------------+
+ *       +-------+        +-------+         +-------+         +-------+
+ *  head |   o---+------> |   /   |   +---> |   A   |   +---> |   B   |
+ *       +-------+        +-------+   |     +-------+   |     +-------+
+ *                        |   /   |   |     |   1   |   |     |   2   |
+ *                        +-------+   |     +-------+   |     +-------+
+ *                        |   o---+---+     |   o---+---+     |  NULL |
+ *                        +-------+         +-------+         +-------+
  *
  *
  */
@@ -42,13 +43,9 @@ private:
 
 /* Instance variables */
 
-    Cell *head;      // Pointer to the cell at the head
-    Cell *tail;      // Pointer to the cell at the tail
+    Cell *head;      // Pointer to the dummy cell at the head
     int count;       // Number of elements in the queue
 
 /* Private method prototypes */
 
     void deepCopy(const PriorityQueue & src);
-    bool isNextPriority(Cell *cp, Cell *pair);
-    bool isHighestPriority(Cell *cp, Cell *pair);
-    void appendToEnd(Cell *cp, Cell *pair);

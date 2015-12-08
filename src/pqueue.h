@@ -121,7 +121,7 @@ public:
  * Its signature follows a standard pattern for all copy constructors.
  */
 
-    PriorityQueue(const PriorityQueue &src);
+    PriorityQueue(const PriorityQueue & src);
 
 /*
  * Method: assignment operator
@@ -131,6 +131,7 @@ public:
  */
 
     PriorityQueue & operator=(const PriorityQueue & src);
+
 
 #include "pqueuepriv.h"
 

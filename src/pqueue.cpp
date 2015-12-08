@@ -17,12 +17,15 @@ using namespace std;
 /*
  * Implementation notes: Constructor
  * ---------------------------------
- * Initializes an empty priority queue.
+ * Initializes a priority queue object containing a dummy cell, and updates
+ * its fields.
  */
 
 template <typename ValueType>
 PriorityQueue<ValueType>::PriorityQueue() {
-    head = tail = NULL;
+    Cell *cp = new Cell;
+    cp->link = NULL;
+    head = cp;
     count = 0;
 }
 
@@ -30,9 +33,7 @@ PriorityQueue<ValueType>::PriorityQueue() {
  * Implementation notes: Destructor
  * --------------------------------
  * This method frees any heap memory associated with the priority queue by
- * traversing the linked list to delete each cell. In order for the rest
- * of the list to be accessible after a cell is deleted, this implementation
- * stores the pointer to the next cell in the list before deleting the cell.
+ * traversing the linked list to delete each cell.
  */
 
 template <typename ValueType>
@@ -55,40 +56,18 @@ void PriorityQueue<ValueType>::clear() {
     while (count > 0) {
         dequeue();
     }
-    head = tail = NULL;
 }
 
 /*
  * Implementation notes: enqueue
  * -----------------------------
- * This implementation uses the following strategy to enqueue an element in a
- * list-based priority queue:
- *
- *   1. Dynamically allocate space for a new cell in the heap.
- *   2. Initialize the cell's fields to the specified value and priority.
- *  3a. If the list is empty, simply update head and tail to point to the new cell.
- *  3b. Otherwise, if there is at least one cell already in the list, traverse the
- *      list one cell at a time by first checking whether the new cell's priority
- *      is higher than the head cell.
- *        - If it is, make the new cell the head of the list.
- *        - Otherwise, if the new cell's priority is lower than the head cell:
- *          - If the list only contains a single cell, place the new cell as
- *            the last element in the list, and update tail to point to the
- *            new cell.
- *          - Otherwise, if the list contains more than one cell, from the head
- *            of the list, check whether the new cell has a higher priority than
- *            the second cell in the list.
- *              - If so, place the new cell immediately after head by updating
- *                head so that it points to the new cell. Then link the new cell
- *                to the rest of the list.
- *              - Otherwise, if the new cell is neither the highest priority nor
- *                the second highest priority, traverse the rest of the list to
- *                check if the new cell has a higher priority than the next cell.
- *                  - If so, place the new cell immediately before the next cell
- *                    in the list by pointing its link to the next cell and updating
- *                    the previous cell to point to the new cell.
- *                  - Otherwise, place the new cell at the tail of the queue after
- *                    traversing the entire list.
+ * This implementation is able to add an element before any cell in the
+ * list due to the existence of the dummy cell. Each cycle of the loop
+ * checks whether the priority of the new element is higher than the
+ * priority of the next cell after the cell pair is currently pointing to.
+ * The only special case this implementation has to check for is when the
+ * link field of pair is null, which means that the end of the list has
+ * been reached. Thus, the new element is added to the end of the list.
  */
 
 template <typename ValueType>
@@ -97,25 +76,19 @@ void PriorityQueue<ValueType>::enqueue(ValueType value, double priority) {
     cp->value = value;
     cp->priority = priority;
     if (isEmpty()) {
+        head->link = cp;
         cp->link = NULL;
-        head = tail = cp;
     } else {
         for (Cell *pair = head; pair != NULL; pair = pair->link) {
-            if (pair != head) {
-                if (pair->link != NULL) {
-                    if (isNextPriority(cp, pair)) break;
-                } else {
-                    appendToEnd(cp, pair);
-                    break;
-                }
-            } else {
-                if (isHighestPriority(cp, pair)) break;
-                if (count > 1) {
-                    if (isNextPriority(cp, pair)) break;
-                } else {
-                    appendToEnd(cp, pair);
-                    break;
-                }
+            if (pair->link == NULL) {
+                pair->link = cp;
+                cp->link = NULL;
+                break;
+            }
+            if (cp->priority < pair->link->priority) {
+                cp->link = pair->link;
+                pair->link = cp;
+                break;
             }
         }
     }
@@ -125,16 +98,19 @@ void PriorityQueue<ValueType>::enqueue(ValueType value, double priority) {
 /*
  * Implementation notes: dequeue
  * -----------------------------
- * Returns the value of the element at the head of the list, removes the element
- * at the head of the list and updates head to point to the rest of the list.
+ * Returns the value of the element after the dummy cell. This implementation
+ * copies the location of that element and stores it in a new pointer variable,
+ * in order for that cell to be accessible and its heap memory freed once the
+ * dummy cell before it has been updated to link to the rest of the list after
+ * it.
  */
 
 template <typename ValueType>
 ValueType PriorityQueue<ValueType>::dequeue() {
     if (isEmpty()) error("dequeue: Attempting to dequeue an empty priority queue");
-    Cell *cp = head;
+    Cell *cp = head->link;
     ValueType result = cp->value;
-    head = cp->link;
+    head->link = cp->link;
     delete cp;
     count--;
     return result;
@@ -143,13 +119,13 @@ ValueType PriorityQueue<ValueType>::dequeue() {
 template <typename ValueType>
 ValueType PriorityQueue<ValueType>::peek() const {
     if (isEmpty()) error("peek: Attempting to peek an empty priority queue");
-    return head->value;
+    return head->link->value;
 }
 
 template <typename ValueType>
 double PriorityQueue<ValueType>::peekPriority() const {
     if (isEmpty()) error("peekPriority: Attempting to peek an empty priority queue");
-    return head->priority;
+    return head->link->priority;
 }
 
 /*
@@ -185,82 +161,31 @@ PriorityQueue<ValueType> & PriorityQueue<ValueType>::operator=(const PriorityQue
 /*
  * Implementation notes: deepCopy
  * ------------------------------
- * This method copies the data from the priority queue passed as a parameter into
- * the current object, by reproducing its internal linked-list state in a new linked
- * list. In order for each copy of a cell to be able to link to cells yet to be
- * allocated in the heap, this implementation stores the address of each current
- * copied cell in the tail pointer, and updates the link pointer in that cell after
- * the next copied cell has been allocated in the heap, so that it can point to that
- * next cell.
+ * This method copies the data from the priority queue passed as a parameter
+ * into the current object, by reproducing its internal linked-list state in
+ * the form of a new linked list. In order for each copy of a cell to have
+ * access to cells yet to be allocated in the heap, this implementation stores
+ * the address of each current copied cell in a new pointer variable, and updates
+ * the link pointer in that cell to point to the next cell, after that next cell
+ * has been allocated in the heap.
  */
 
 template <typename ValueType>
 void PriorityQueue<ValueType>::deepCopy(const PriorityQueue & src) {
-    head = tail = NULL;
-    count = 0;
-    if (!src.isEmpty()) {
-        for (Cell *cp = src.head; cp != NULL; cp = cp->link) {
-            Cell *copy = new Cell;
+    Cell *prev;
+    for (Cell *cp = src.head; cp != NULL; cp = cp->link) {
+        Cell *copy = new Cell;
+        if (cp == src.head) {
+            head = copy;
+        } else {
             copy->value = cp->value;
             copy->priority = cp->priority;
-            copy->link = NULL;
-            if (size() > 0) tail->link = copy;
-            else head = copy;
-            tail = copy;
-            count++;
+            prev->link = copy;
         }
+        copy->link = NULL;
+        prev = copy;
     }
-}
-
-/*
- * Implementation notes: isNextPriority
- * Usage: if (isNextPriority(&cp, &pair)) ...
- * ------------------------------------------
- * Returns true and places the enqueued element, cp, immediately after the
- * specified pair in the queue if cp's priority value is greater than pair's but
- * less than the priority value of the element that originally followed pair.
- */
-
-template <typename ValueType>
-bool PriorityQueue<ValueType>::isNextPriority(Cell *cp, Cell *pair) {
-    if (cp->priority < pair->link->priority) {
-        cp->link = pair->link;
-        pair->link = cp;
-        return true;
-    }
-    return false;
-}
-
-/*
- * Implementation notes: isHighestPriority
- * Usage: if (isHighestPriority(&cp, &pair)) ...
- * ---------------------------------------------
- * Returns true and places the enqueued element, cp, at the head of the queue
- * if it contains the highest priority value.
- */
-
-template <typename ValueType>
-bool PriorityQueue<ValueType>::isHighestPriority(Cell *cp, Cell *pair) {
-    if (cp->priority < pair->priority) {
-        cp->link = pair;
-        head = cp;
-        return true;
-    }
-    return false;
-}
-
-/*
- * Implementation notes: appendToEnd
- * Usage: void appendToEnd(&cp, &pair);
- * ------------------------------------
- * Places cp as the last element in the queue.
- */
-
-template <typename ValueType>
-void PriorityQueue<ValueType>::appendToEnd(Cell *cp, Cell *pair) {
-    pair->link = cp;
-    cp->link = NULL;
-    tail = cp;
+    count = src.size();
 }
 
 #endif
