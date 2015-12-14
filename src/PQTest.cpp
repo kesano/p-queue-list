@@ -1,8 +1,7 @@
 /*
  * File: PQTest.cpp
  * ----------------
- * This is a test program for the PriorityQueue class, which only stores string
- * values.
+ * This is a test program for the PriorityQueue class.
  */
 
 #include <iostream>
